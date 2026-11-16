@@ -1,0 +1,13 @@
+[project]
+name = "trading-mvp"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.100", "pydantic>=2.0", "uvicorn>=0.23"]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0", "httpx>=0.24"]
+mt5 = ["MetaTrader5>=5.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
