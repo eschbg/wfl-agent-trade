@@ -2,6 +2,9 @@ from fastapi import FastAPI
 
 from .broker import InMemoryBroker
 from .models import SystemState
+from .trading.application.strategy import MomentumStrategy
+from .trading.domain.market_data import Candle
+from pydantic import BaseModel
 from .risk import RiskPolicy
 from .service import TradingService
 from .bootstrap import build_broker_lab
@@ -9,6 +12,16 @@ from .bootstrap import build_broker_lab
 app = FastAPI(title="AI Trading MVP", version="0.1.0")
 service = TradingService(InMemoryBroker(), RiskPolicy())
 broker_lab = build_broker_lab()
+strategy = MomentumStrategy()
+
+
+class CandlePayload(BaseModel):
+    timestamp: int
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float
 
 
 @app.get("/health")
@@ -49,3 +62,9 @@ def broker_reconcile():
 @app.post("/broker/close-all")
 def broker_close_all():
     return {"closed": broker_lab.close_all()}
+
+
+@app.post("/strategy/evaluate")
+def evaluate_strategy(candles: list[CandlePayload]):
+    signal = strategy.evaluate([Candle(**candle.model_dump()) for candle in candles])
+    return signal.__dict__

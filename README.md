@@ -51,6 +51,8 @@ python -c "from trading_mvp.bootstrap import build_broker_lab; lab=build_broker_
 
 To select MT5 Demo explicitly, set `TRADING_BROKER=mt5`, `MT5_LOGIN`, `MT5_PASSWORD`, `MT5_SERVER`, and optionally `MT5_TERMINAL_PATH`. The API then exposes `/broker/connect`, `/broker/reconcile`, and `/broker/close-all`. No MT5 credentials are stored in the repository.
 
+The strategy lab is read-only: `MT5MarketData`/`InMemoryMarketData` provide candles and `MomentumStrategy` returns `BUY`, `SELL`, `WAIT`, or `NO_TRADE`. `POST /strategy/evaluate` evaluates candles and never submits an order.
+
 ## Run
 
 ```powershell
