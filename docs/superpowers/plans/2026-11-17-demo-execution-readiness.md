@@ -12,6 +12,12 @@
 
 ## P0 — must complete before Demo order submission
 
+### 0. Eliminate unsafe local wiring before terminal work
+
+Use one broker instance for the service, dashboard, and emergency controls; do not let `TradingService` hold an in-memory broker while broker endpoints use MT5. Persist audit events with UTC timestamps and make close-all transition to `FAULTED` if unresolved positions remain.
+
+**Acceptance:** one integration test proves `/control/close-all` and broker reconciliation use the identical broker state; injected close failure produces `FAULTED`, an audit event, and a list of unresolved tickets.
+
 ### 1. Broker capability discovery
 
 Read and persist symbol/account capabilities on startup: symbol visibility, trade mode, min/max/step volume, contract size, tick size/value, stop/freeze level, execution mode, supported filling modes, margin and spread.
@@ -65,4 +71,4 @@ Feed broker account/position/risk/execution data into dashboard, including signa
 
 ## Recommended first implementation slice
 
-Implement broker capability discovery plus contract-aware risk sizing immediately after MT5 terminal installation. It is the smallest slice that can falsify whether XAUUSD with the chosen broker is compatible with the stated $100/risk policy; no order submission should precede it.
+Implement `SymbolSpec` + contract-aware risk sizing + single-broker composition root first, before terminal installation. Then complete broker capability discovery after the terminal is available. This sequence removes a potential 100x XAUUSD risk error and prevents emergency controls from acting on a different broker instance; no order submission should precede it.
