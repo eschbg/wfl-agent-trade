@@ -5,7 +5,10 @@ from trading_mvp.api import app
 
 def test_dashboard_exposes_status_positions_controls_and_audit():
     client = TestClient(app)
-    assert client.get("/dashboard").status_code == 200
+    page = client.get("/dashboard")
+    assert page.status_code == 200
+    assert "WFL TRADE" in page.text
+    assert "Control center" in page.text
     state = client.get("/dashboard/state").json()
     assert {"state", "broker_mode", "equity", "pnl", "risk", "positions"} <= state.keys()
     assert "events" in client.get("/dashboard/audit").json()
