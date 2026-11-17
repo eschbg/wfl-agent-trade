@@ -40,3 +40,10 @@ class TradingService:
         self.broker.reconcile()
         self.state = SystemState.RUNNING
         self._record("resume", "reconciled broker")
+
+    def recover(self):
+        self.state = SystemState.RECOVERING
+        positions = self.broker.reconcile()
+        self.state = SystemState.PAUSED
+        self._record("recovery_complete", f"positions={len(positions)}; owner review required")
+        return positions

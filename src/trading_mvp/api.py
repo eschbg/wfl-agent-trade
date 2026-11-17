@@ -7,6 +7,8 @@ from fastapi.responses import HTMLResponse
 from .broker import InMemoryBroker, MT5Broker, MT5Config
 from .models import SystemState
 from .trading.application.strategy import MomentumStrategy
+from .trading.application.backtest import MomentumBacktester
+from .trading.application.market_quality import MarketDataQualityGate
 from .trading.domain.market_data import Candle
 from pydantic import BaseModel
 from .risk import RiskPolicy
@@ -28,6 +30,16 @@ class CandlePayload(BaseModel):
     low: float
     close: float
     volume: float
+
+
+class MarketValidationPayload(BaseModel):
+    candles: list[CandlePayload]
+    now: int
+
+
+class BacktestPayload(BaseModel):
+    candles: list[CandlePayload]
+    cost_per_trade: float = 0.0
 
 
 @app.get("/health")
@@ -53,6 +65,12 @@ def close_all():
     closed = service.broker.close_all()
     service.state = SystemState.PAUSED
     return {"state": service.state.value, "closed": closed}
+
+
+@app.post("/control/recover")
+def recover():
+    positions = service.recover()
+    return {"state": service.state.value, "positions": [position.model_dump() for position in positions]}
 
 
 @app.post("/broker/connect")
@@ -151,3 +169,15 @@ DASHBOARD_HTML = """<!doctype html><html><head><meta charset='utf-8'><title>Trad
 def evaluate_strategy(candles: list[CandlePayload]):
     signal = strategy.evaluate([Candle(**candle.model_dump()) for candle in candles])
     return signal.__dict__
+
+
+@app.post("/market/validate")
+def validate_market_data(payload: MarketValidationPayload):
+    candles = [Candle(**candle.model_dump()) for candle in payload.candles]
+    return MarketDataQualityGate().evaluate(candles, payload.now).__dict__
+
+
+@app.post("/backtest/momentum")
+def backtest_momentum(payload: BacktestPayload):
+    candles = [Candle(**candle.model_dump()) for candle in payload.candles]
+    return MomentumBacktester(payload.cost_per_trade).run(candles).__dict__
