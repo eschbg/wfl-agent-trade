@@ -17,6 +17,9 @@ class InMemoryBroker:
     def __init__(self):
         self.positions: list[Position] = []
 
+    def connect(self):
+        return None
+
     def submit(self, order: OrderRequest) -> Position:
         position = Position(id=str(uuid4()), **order.model_dump())
         self.positions.append(position)

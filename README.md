@@ -33,6 +33,24 @@ Demo-only, rule-based trading core for the BRD. The current implementation conta
 
 The current artifact is therefore a **safe MVP foundation**, not yet a complete autonomous trading system. The next implementation slice is market data + one deterministic strategy + a Demo-only order endpoint.
 
+## Broker lab and architecture
+
+The feature-first structure is under `src/trading_mvp/trading/`:
+
+- `domain/`: models and broker port;
+- `application/`: broker lab use case;
+- `infrastructure/brokers/`: broker adapter boundary;
+- `interfaces/http/`: external interface boundary;
+- `bootstrap.py`: composition root and mode selection.
+
+The lab defaults to the safe in-memory broker:
+
+```powershell
+python -c "from trading_mvp.bootstrap import build_broker_lab; lab=build_broker_lab(); print(lab.connect(), lab.reconcile())"
+```
+
+To select MT5 Demo explicitly, set `TRADING_BROKER=mt5`, `MT5_LOGIN`, `MT5_PASSWORD`, `MT5_SERVER`, and optionally `MT5_TERMINAL_PATH`. The API then exposes `/broker/connect`, `/broker/reconcile`, and `/broker/close-all`. No MT5 credentials are stored in the repository.
+
 ## Run
 
 ```powershell
